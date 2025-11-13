@@ -108,9 +108,9 @@ class Hamiltonian:
                         temp_string += matrix_list[i] + r"_{" + str(i) + r"} "    
                               
                 if self.hamiltonian[key] < 0:
-                    string_to_print += r" - " + str(abs(self.hamiltonian[key])) + temp_string
+                    string_to_print += r" - " + str(abs(self.hamiltonian[key])) + " " + temp_string
                 else:
-                    string_to_print += r" + " + str(abs(self.hamiltonian[key])) + temp_string
+                    string_to_print += r" + " + str(abs(self.hamiltonian[key])) + " " + temp_string
         print(string_to_print)
     
     def cleanup(self):
