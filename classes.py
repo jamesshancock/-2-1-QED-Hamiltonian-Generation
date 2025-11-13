@@ -19,13 +19,30 @@ def possible_directions(lattice):
     labels = lattice.labels
     possible_labels = list(lattice.reverse_labels.keys())
     directions = {}
+    link_indexing = {}
+    counter = 0
     for j in range(lattice.n_links):
         directions[j] = []
         if (labels[j][0] + 1, labels[j][1]) in possible_labels: # x_link
             directions[j].append(1)
+            link_indexing[((labels[j][0], labels[j][1]), 1)] = counter
+            counter += 1
         if (labels[j][0], labels[j][1]+1) in possible_labels: # y_link
             directions[j].append(2)
-    return directions
+            link_indexing[((labels[j][0], labels[j][1]), 2)] = counter
+            counter += 1
+    return directions, link_indexing
+
+def possible_plaquettes(lattice):
+    plaquette_ns = []
+    indices_list = list(lattice.reverse_labels.keys())
+    for key in lattice.labels:
+        indices = lattice.labels[key]
+        if (indices[0], indices[1] + 1) in indices_list:
+            if (indices[0] + 1, indices[1]) in indices_list:
+                if (indices[0] + 1, indices[1] + 1) in indices_list:
+                    plaquette_ns.append(key)
+    return plaquette_ns
 
 class Lattice:
     def __init__(self, L_x, L_y, gauge_truncation):
@@ -51,7 +68,8 @@ class Lattice:
         self.qubits_per_gauge = 0 if gauge_truncation == 0 else int(np.ceil(np.log2(2*gauge_truncation+1)))
         self.n_gauge_qubits = self.n_links*self.qubits_per_gauge
         self.n_qubits = self.n_fermion_qubits + self.n_gauge_qubits
-        self.directions = possible_directions(self)
+        self.directions, self.link_indexing = possible_directions(self)
+        self.plaquettes = possible_plaquettes(self)
 
     def get_index(self, x, y):
         if (x, y) in self.reverse_labels:
@@ -75,6 +93,36 @@ class Hamiltonian:
     def __init__(self, n_qubits = 1):
         self.hamiltonian = {'I'*n_qubits : 0}
         self.n_qubits = n_qubits
+
+    def latex_print(self):
+        keys = list(self.hamiltonian.keys())
+        string_to_print = ""
+        for key in keys:
+            matrix_list = list(key)
+            if matrix_list == ['I']*len(matrix_list):
+                string_to_print += str(self.hamiltonian[key])
+            else:
+                temp_string = ""
+                for i in range(len(matrix_list)):
+                    if matrix_list[i] != 'I':
+                        temp_string += matrix_list[i] + r"_{" + str(i) + r"} "    
+                              
+                if self.hamiltonian[key] < 0:
+                    string_to_print += r" - " + str(abs(self.hamiltonian[key])) + temp_string
+                else:
+                    string_to_print += r" + " + str(abs(self.hamiltonian[key])) + temp_string
+        print(string_to_print)
+    
+    def cleanup(self):
+        new_hamil = {}
+        for key in self.hamiltonian:
+            if np.abs(self.hamiltonian[key]) > 0.0001:
+                new_hamil[key] = self.hamiltonian[key]
+                if self.hamiltonian[key].imag > 0.0001:
+                    print("This Hamiltonian will be non-Hermitian, due to the term:", key, ":", self.hamiltonian[key])
+                else:
+                    new_hamil[key] = new_hamil[key].real
+        self.hamiltonian = new_hamil
     
     def multiply_hamiltonians(self, other):
         hamil_1 = self.hamiltonian
@@ -91,7 +139,7 @@ class Hamiltonian:
                     new_hamil[new_term] += new_coeff
                 else:
                     new_hamil[new_term] = new_coeff
-        return new_hamil
+        self.hamiltonian = new_hamil
 
     def add_term(self, term, coeff):
         if len(term) != self.n_qubits:
@@ -105,7 +153,7 @@ class Hamiltonian:
     def add_hamiltonians(self, other):
         if isinstance(other, Hamiltonian): hamil_other = other.hamiltonian
         else : hamil_other = other
-        for key in list(hamil_other.keys()):
+        for key in hamil_other:
             self.add_term(key, hamil_other[key])
     
     def to_matrix(self):
@@ -125,7 +173,7 @@ class Hamiltonian:
         return matrix
     
     def to_conjugate(self):
-        # Of note here, Pauli strings are self-conjugate - would have been good to have this class for my PT work gottem
+        # Of note here, Pauli strings are self-conjugate
         hamil = self.hamiltonian
         keys = list(hamil.keys())
         new_hamil = {}
