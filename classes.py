@@ -67,7 +67,10 @@ class Lattice:
         self.n_links = (self.L_x - 1) * self.L_y + self.L_x * (self.L_y - 1) # OBC 
         self.qubits_per_gauge = 0 if gauge_truncation == 0 else int(np.ceil(np.log2(2*gauge_truncation+1)))
         self.n_gauge_qubits = self.n_links*self.qubits_per_gauge
-        self.n_qubits = self.n_fermion_qubits + self.n_gauge_qubits
+    
+        self.n_dynamical_links = self.n_links - (self.n_fermion_qubits - 1)
+        self.n_dynamical_gauge_qubits = self.n_dynamical_links*self.qubits_per_gauge
+        self.n_qubits = self.n_fermion_qubits + self.n_dynamical_gauge_qubits
         self.directions, self.link_indexing = possible_directions(self)
         self.plaquettes = possible_plaquettes(self)
 

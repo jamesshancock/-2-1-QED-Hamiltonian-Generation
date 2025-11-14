@@ -7,11 +7,11 @@ def initiate_circuit_observables(L_x,L_y,n_fermion_layers,gauge_truncation):
     lattice = Lattice(L_x,L_y,gauge_truncation)
     observables = ObservableCalculator(lattice,measurer)    
     
-    builder = CircuitBuilder(lattice.n_fermion_qubits, lattice.n_links*lattice.qubits_per_gauge)
+    builder = CircuitBuilder(lattice.n_fermion_qubits, lattice.n_dynamical_links*lattice.qubits_per_gauge)
     builder.initialize_fermions()
     n_slice = builder.iSwap_block_calculate()
     
-    total_thetas = n_slice*n_fermion_layers + lattice.qubits_per_gauge*lattice.n_links
+    total_thetas = n_slice*n_fermion_layers + lattice.qubits_per_gauge*lattice.n_dynamical_links
     thetas = qiskit.circuit.ParameterVector('θ', total_thetas)
     fermion_thetas = thetas[:n_slice*n_fermion_layers]
     gauge_thetas = thetas[n_slice*n_fermion_layers:]
