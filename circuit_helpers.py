@@ -1,10 +1,14 @@
 from modules import *
 from classes import *
 
-def initiate_circuit_observables(L_x,L_y,n_fermion_layers,gauge_truncation):
-
+def initiate_circuit_observables(parameters):
+    L_x = parameters['L_x']
+    L_y = parameters['L_y']
+    n_fermion_layers = parameters['n_fermion_layers']
+    gauge_truncation = parameters['gauge_truncation']
+    dynamical_links = parameters['dynamical_links']
     measurer = Measurements()
-    lattice = Lattice(L_x,L_y,gauge_truncation)
+    lattice = Lattice(L_x,L_y,gauge_truncation,dynamical_links)
     observables = ObservableCalculator(lattice,measurer)    
     
     builder = CircuitBuilder(lattice.n_fermion_qubits, lattice.n_dynamical_links*lattice.qubits_per_gauge)
@@ -22,7 +26,7 @@ def initiate_circuit_observables(L_x,L_y,n_fermion_layers,gauge_truncation):
 
     circuit = builder.build()
 
-    return circuit, observables, thetas, total_thetas
+    return circuit, observables, thetas, total_thetas, lattice.n_qubits
 
 def qed_vqe(thetas_values, thetas, hamiltonian, circuit, observables, shots):
     param_dict = dict(zip(thetas, thetas_values))

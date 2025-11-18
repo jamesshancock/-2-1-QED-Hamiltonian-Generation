@@ -4,6 +4,16 @@ import qiskit_aer
 import cmath
 import time
 import copy
+import random
+import scipy
+
+# self.n_dynamical_links = self.n_links - (self.n_fermion_qubits - 1)
+# 2x2 : any one link - [[((0,0),1)], [((0,0),2)], [((1,0),2)], [((0,1),1)]]
+# 3x2 : any two links
+# 3x3 : 
+# For now, I will not generalize, and will use the ones that they used
+
+DYNAMICAL_LINKS = [((1,0),2)]#, ((2,0),2)]
 
 NOISELESS_SIMULATOR = qiskit_aer.AerSimulator()
 PAULI_PHASES = {

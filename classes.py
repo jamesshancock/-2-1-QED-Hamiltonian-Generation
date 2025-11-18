@@ -20,8 +20,10 @@ def possible_directions(lattice):
     possible_labels = list(lattice.reverse_labels.keys())
     directions = {}
     link_indexing = {}
+    dynamical_link_indexing = {}
     counter = 0
-    for j in range(lattice.n_links):
+    dynamical_counter = 0
+    for j in range(len(labels)):
         directions[j] = []
         if (labels[j][0] + 1, labels[j][1]) in possible_labels: # x_link
             directions[j].append(1)
@@ -31,7 +33,15 @@ def possible_directions(lattice):
             directions[j].append(2)
             link_indexing[((labels[j][0], labels[j][1]), 2)] = counter
             counter += 1
-    return directions, link_indexing
+        
+        if ((labels[j][0], labels[j][1]), 1) in lattice.dynamical_links_list:
+            dynamical_link_indexing[((labels[j][0], labels[j][1]), 1)] = dynamical_counter
+            dynamical_counter += 1
+        if ((labels[j][0], labels[j][1]), 2) in lattice.dynamical_links_list:
+            dynamical_link_indexing[((labels[j][0], labels[j][1]), 2)] = dynamical_counter
+            dynamical_counter += 1
+
+    return directions, link_indexing, dynamical_link_indexing
 
 def possible_plaquettes(lattice):
     plaquette_ns = []
@@ -45,7 +55,7 @@ def possible_plaquettes(lattice):
     return plaquette_ns
 
 class Lattice:
-    def __init__(self, L_x, L_y, gauge_truncation):
+    def __init__(self, L_x, L_y, gauge_truncation,dynamical_links_list):
 
         # Need to add link indexing
 
@@ -56,6 +66,7 @@ class Lattice:
         self.labels = {}
         self.reverse_labels = {}
         self.gauge_truncation = gauge_truncation
+        self.dynamical_links_list = dynamical_links_list
         counter = 0
 
         for y in range(L_y):
@@ -71,7 +82,8 @@ class Lattice:
         self.n_dynamical_links = self.n_links - (self.n_fermion_qubits - 1)
         self.n_dynamical_gauge_qubits = self.n_dynamical_links*self.qubits_per_gauge
         self.n_qubits = self.n_fermion_qubits + self.n_dynamical_gauge_qubits
-        self.directions, self.link_indexing = possible_directions(self)
+
+        self.directions, self.link_indexing, self.dynamical_link_indexing = possible_directions(self)
         self.plaquettes = possible_plaquettes(self)
 
     def get_index(self, x, y):
@@ -323,3 +335,6 @@ class ObservableCalculator:
 
     def energy(self, circuit, hamiltonian, shots = 1024):
         return self.measurer.expected_value_hamiltonian(hamiltonian, circuit, shots)
+    
+    def full_z(self, circuit, n, shots = 1024):
+        return self.measurer.measure_circuit(circuit, 'Z'*n, shots)

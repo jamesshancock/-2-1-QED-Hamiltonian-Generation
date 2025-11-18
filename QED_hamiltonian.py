@@ -15,13 +15,13 @@ def mass_term_n(hamiltonian, lattice, n, m):
     return hamiltonian
 
 def electric_field_term_n_direction(hamiltonian, lattice, n, direction, g, dynamical_links):
-    index = lattice.labels[n]
-    link_index = lattice.link_indexing[(index, direction)]
-    coeff = g**2 / 2
+    index = lattice.labels[n] 
     if (index, direction) in dynamical_links:
+        link_index = lattice.dynamical_link_indexing[(index, direction)]
+        coeff = g**2 / 2
         fermion_string = 'I' * lattice.n_fermion_qubits
 
-        gauge_before = 'I' * ((link_index-1) * lattice.qubits_per_gauge)
+        gauge_before = 'I' * ((link_index) * lattice.qubits_per_gauge)
         gauge_after = 'I' * (lattice.n_dynamical_gauge_qubits - (link_index + 1) * lattice.qubits_per_gauge)
 
         Es = {
@@ -56,7 +56,7 @@ def electric_field_term_n(hamiltonian, lattice, n, g, dynamical_links):
 def U_term_n(hamiltonian, lattice, n, direction, dynamical_links): 
     index = lattice.labels[n]
     if (index,direction) in dynamical_links:
-        link_index = lattice.link_indexing[(index, direction)]
+        link_index = lattice.dynamical_link_indexing[(index, direction)]
         
         fermion_string = 'I' * lattice.n_fermion_qubits
 
@@ -193,7 +193,7 @@ def kinetic_term_n(hamiltonian, lattice, n, a, dynamical_links):
     return hamiltonian
  
 def generate_qed_hamiltonian(parameters):
-    lattice = Lattice(parameters['L_x'],parameters['L_y'],parameters['gauge_truncation'])
+    lattice = Lattice(parameters['L_x'],parameters['L_y'],parameters['gauge_truncation'],parameters['dynamical_links'])
     hamiltonian = Hamiltonian(lattice.n_qubits)
     
     # Mass term
@@ -201,7 +201,7 @@ def generate_qed_hamiltonian(parameters):
         hamiltonian = mass_term_n(hamiltonian, lattice, n, parameters['m'])
 
     # Electric field term
-    for n in range(lattice.n_links):
+    for n in range(lattice.n_fermion_qubits):
         hamiltonian = electric_field_term_n(hamiltonian, lattice, n, parameters['g'], parameters['dynamical_links'])
 
     # Magnetic field term
