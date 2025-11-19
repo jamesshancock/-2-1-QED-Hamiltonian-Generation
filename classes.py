@@ -127,7 +127,62 @@ class Hamiltonian:
                 else:
                     string_to_print += r" + " + str(abs(self.hamiltonian[key])) + " " + temp_string
         print(string_to_print)
-    
+
+    def latex_plot(self, save=False):
+        keys = list(self.hamiltonian.keys())
+        string_to_print = "H = &"
+        counter = 0
+        for key in keys:
+            matrix_list = list(key)
+            if matrix_list == ['I']*len(matrix_list):
+                term = str(self.hamiltonian[key])
+                if self.hamiltonian[key] < 0:
+                    string_to_print += r" - " + term
+                else:
+                    string_to_print += r" + " + term
+            else:
+                temp_string = ""
+                for i in range(len(matrix_list)):
+                    if matrix_list[i] != 'I':
+                        temp_string += matrix_list[i] + r"_{" + str(i) + r"} "    
+                            
+                if self.hamiltonian[key] < 0:
+                    string_to_print += r" - " + str(abs(self.hamiltonian[key])) + " " + temp_string
+                else:
+                    string_to_print += r" + " + str(abs(self.hamiltonian[key])) + " " + temp_string
+                counter += 1
+                if (counter % 4) == 0:
+                    string_to_print += r"\\ &" 
+        
+        # Remove leading " + " if present
+        if string_to_print.startswith(" + "):
+            string_to_print = string_to_print[3:]
+        elif string_to_print.startswith(" - "):
+            string_to_print = string_to_print[1:]  # Keep the minus but remove space
+        
+        plt.rcParams.update({
+            "text.usetex": True,
+            "font.family": "serif",
+            "font.serif": ["Times New Roman"],
+            "text.latex.preamble": r"\usepackage{amsmath}"  # ADD THIS LINE
+        })
+
+        fig, ax = plt.subplots(figsize=(10, 6), dpi=300)
+        
+        # Use text with wrapping
+        ax.text(0.5, 0.5, r"$\begin{aligned}" + string_to_print + r"\end{aligned}$", 
+                fontsize=14, ha='center', va='center')
+                 
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1)
+        ax.axis('off')
+        if save:
+            plt.savefig(f"equation_temp.pdf", bbox_inches='tight')
+        #plt.tight_layout()
+        plt.show()
+        
+        
+        
     def cleanup(self):
         new_hamil = {}
         for key in self.hamiltonian:
