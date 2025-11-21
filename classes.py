@@ -178,11 +178,8 @@ class Hamiltonian:
         ax.axis('off')
         if save:
             plt.savefig(f"equation_temp.pdf", bbox_inches='tight')
-        #plt.tight_layout()
         plt.show()
-        
-        
-        
+             
     def cleanup(self):
         new_hamil = {}
         for key in self.hamiltonian:
@@ -269,7 +266,7 @@ class CircuitBuilder:
         counter = 0
         for layer in range(total_layers):
             qubits_to_use = list(range(layer,self.n_fermion_qubits-layer))
-            for j in range(int(len(qubits_to_use)/2)):
+            for _ in range(int(len(qubits_to_use)/2)):
                 counter += 1
         return counter
 

@@ -134,7 +134,7 @@ def annihilation_operator_n(hamiltonian, lattice, n):
     fermions_before = 'Z'*(n)
     fermions_after = 'I'*(lattice.n_fermion_qubits - (n+1))
     hamiltonian.add_term(gauge_string + fermions_before + 'X' + fermions_after, (-1j)**(n-1)/2)
-    hamiltonian.add_term(gauge_string + fermions_before + 'Y' + fermions_after, (1j)*(1j)**(n-1)/2)
+    hamiltonian.add_term(gauge_string + fermions_before + 'Y' + fermions_after, (1j)*(-1j)**(n-1)/2)
     return hamiltonian
 
 def kinetic_subterm_n(lattice, n, direction, dynamical_links):
@@ -156,12 +156,12 @@ def kinetic_subterm_n(lattice, n, direction, dynamical_links):
 
     creation_hamiltonian = creation_operator_n(creation_hamiltonian, lattice, n)
     U_hamiltonian = U_term_n(U_hamiltonian, lattice, n, direction, dynamical_links)
+    U_hamiltonian.hamiltonian = U_hamiltonian.to_conjugate()
     annihilation_hamiltonian = annihilation_operator_n(annihilation_hamiltonian, lattice, n_mu)
 
-    hamiltonian.multiply_hamiltonians(creation_hamiltonian)
-    hamiltonian.multiply_hamiltonians(U_hamiltonian)
     hamiltonian.multiply_hamiltonians(annihilation_hamiltonian)
-
+    hamiltonian.multiply_hamiltonians(U_hamiltonian)
+    hamiltonian.multiply_hamiltonians(creation_hamiltonian)
 
     return hamiltonian
 
@@ -196,6 +196,12 @@ def generate_qed_hamiltonian(parameters):
     electric_coeff = parameters['g']*parameters['g']/2
     magnetic_coeff = -1/(2*(parameters['a']*parameters['a'])*(parameters['g']*parameters['g']))
     kinetic_coeff = 1/(2*parameters['a'])
+
+    # For testing
+    mass_coeff *= 1
+    electric_coeff *= 1
+    magnetic_coeff *= 1
+    kinetic_coeff *= 1
 
     # Mass term
     for n in range(lattice.n_fermion_qubits):
